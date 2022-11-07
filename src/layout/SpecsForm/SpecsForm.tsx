@@ -1,42 +1,30 @@
 import { Button, Checkbox, Form, Input, Modal, Select } from "antd";
-import { FC, useContext, useState } from "react";
+import { FC, useState } from "react";
+import { SpecsContextInterface } from "../../interfaces/Specs";
 import {
-  SpecsContextInterface,
-  SpecsCTX,
-} from "../../contexts/SpecsListContext";
-
-interface NewFieldType {
-  name: string;
-  label: string;
-}
+  buildField,
+  getDynamicFields,
+} from "../../redux/features/dynamicFields/dynamicFieldsSlice";
+import { save } from "../../redux/features/specsList/specsListSlice";
+import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 
 const SpecsForm: FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [showModel, setShowModel] = useState(false);
-  const specsCTX = useContext(SpecsCTX);
-  const [dynamicFields, setDynamicFields] = useState<NewFieldType[] | []>([]);
+  // const specsCTX = useContext(SpecsCTX);
+  const dynamicFields = useAppSelector(getDynamicFields);
+
+  const dispatch = useAppDispatch();
+
   const [form] = Form.useForm();
 
-  const onFinish = (values: SpecsContextInterface) => {
-    specsCTX?.save(values);
-  };
+  const onFinish = (values: SpecsContextInterface) => dispatch(save(values));
 
-  const onFinishFailed = (errorInfo: any) => {
-    console.log("Failed:", errorInfo);
-  };
-
-  const onFinishNewField = (values: NewFieldType) => {};
-
-  const buildField = () => {
+  const saveField = () => {
     let values = form.getFieldsValue();
-    let validateExistence = dynamicFields.findIndex(
-      (field) => values.name === field.name
-    );
-    
-    if (validateExistence === -1) {
-      setDynamicFields([...dynamicFields, values]);
-      setShowModel(false);
-    }
+
+    dispatch(buildField(values));
+    setShowModel(false);
   };
 
   return (
@@ -56,7 +44,6 @@ const SpecsForm: FC = () => {
             wrapperCol={{ span: 16 }}
             initialValues={{ remember: true }}
             onFinish={onFinish}
-            onFinishFailed={onFinishFailed}
             autoComplete="off"
           >
             <Form.Item
@@ -118,7 +105,7 @@ const SpecsForm: FC = () => {
             </Form.Item>
 
             {dynamicFields.map((each) => (
-              <Form.Item label={each.label} name={each.name}>
+              <Form.Item label={each.label} name={each.name} key={each.name}>
                 <Input />
               </Form.Item>
             ))}
@@ -145,10 +132,10 @@ const SpecsForm: FC = () => {
       <Modal
         title="Add new field"
         open={showModel}
-        onOk={buildField}
+        onOk={saveField}
         onCancel={() => setShowModel(false)}
       >
-        <Form onFinish={onFinishNewField} form={form}>
+        <Form form={form}>
           <Form.Item name="name" label="Name">
             <Input />
           </Form.Item>

@@ -1,18 +1,19 @@
 import { Collapse } from "antd";
-import { FC, useContext, useEffect } from "react";
-import { SpecsCTX } from "../../contexts/SpecsListContext";
+import { FC } from "react";
+import { getSpecs } from "../../redux/features/specsList/specsListSlice";
+import { useAppSelector } from "../../redux/hooks";
 const { Panel } = Collapse;
 
 const SpecsList: FC = () => {
-  const specsList = useContext(SpecsCTX);
+  const specs = useAppSelector(getSpecs);
 
   return (
     <div className="w-5/12">
       <Collapse accordion>
-        {specsList?.specsList.map((each) => (
+        {specs.map((each) => (
           <Panel header={each.name} key={each.name}>
             {Object.entries(each).map(([fieldName, fieldValue]) => (
-              <p>
+              <p key={fieldName}>
                 <b> {fieldName}</b>: {fieldValue?.toString?.()}
               </p>
             ))}
